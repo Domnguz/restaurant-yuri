@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Mesa;
 use App\Models\Pedido;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,12 +12,6 @@ use Illuminate\View\View;
 
 class PedidoController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Lista de pedidos
-    |--------------------------------------------------------------------------
-    */
-
     public function index(): View
     {
         $pedidos = Pedido::with([
@@ -29,17 +24,13 @@ class PedidoController extends Controller
         ->latest()
         ->get();
 
-        $mesas = \App\Models\Mesa::orderBy('numero')->get();
+        $mesas = Mesa::orderBy('numero')->get();
 
-        return view('admin.pedidos.index', compact('pedidos', 'mesas'));
+        return view('admin.pedidos.index', compact(
+            'pedidos',
+            'mesas'
+        ));
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Ver pedido
-    |--------------------------------------------------------------------------
-    */
 
     public function show(Pedido $pedido): View
     {
@@ -53,95 +44,149 @@ class PedidoController extends Controller
         return view('admin.pedidos.show', compact('pedido'));
     }
 
+    public function cambiarEstado(
+        Request $request,
+        Pedido $pedido
+    ): RedirectResponse {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Cambiar estado
-    |--------------------------------------------------------------------------
-    */
+        $datos = $request->validate([
+            'estado' => [
+                'required',
+                'in:pendiente,listo,entregado',
+            ],
+        ]);
 
-public function cambiarEstado(
-    Request $request,
-    Pedido $pedido
-): RedirectResponse {
+        // No permitir cambiar estados de un pedido
+        // que ya fue pagado o cancelado.
+        if (in_array($pedido->estado, ['pagado', 'cancelado'])) {
+            return back()->with(
+                'error',
+                'No se puede cambiar el estado de un pedido pagado o cancelado.'
+            );
+        }
 
-    $datos = $request->validate([
-        'estado' => [
-            'required',
-            'in:pendiente,preparando,listo,entregado,pagado,cancelado',
-        ],
-    ]);
+        $pedido->update([
+            'estado' => $datos['estado'],
+        ]);
 
-    $pedido->update([
-        'estado' => $datos['estado'],
-    ]);
+        return back()->with(
+            'success',
+            'Estado del pedido actualizado correctamente.'
+        );
+    }
 
-    return back()->with('success', 'Estado del pedido actualizado correctamente.');
-}
-    /*
-    |--------------------------------------------------------------------------
-    | Finalizar pago
-    |--------------------------------------------------------------------------
-    */
-public function finalizarPago(
-    Request $request,
-    Pedido $pedido
-): RedirectResponse {
+    public function finalizarPago(
+        Request $request,
+        Pedido $pedido
+    ): RedirectResponse {
 
-    $datos = $request->validate([
-        'metodo_pago' => [
-            'required',
-            'in:efectivo,yape,plin,tarjeta',
-        ],
+        // No permitir pagar un pedido ya pagado o cancelado.
+        if (in_array($pedido->estado, ['pagado', 'cancelado'])) {
+            return back()->with(
+                'error',
+                'Este pedido ya fue pagado o cancelado.'
+            );
+        }
 
-        'monto_recibido' => [
-            'nullable',
-            'numeric',
-            'min:0',
-        ],
-    ]);
+        $datos = $request->validate([
+            'metodo_pago' => [
+                'required',
+                'in:efectivo,yape,plin,tarjeta',
+            ],
 
-    DB::transaction(function () use ($datos, $pedido) {
+            'monto_recibido' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                'required_if:metodo_pago,efectivo',
+            ],
+        ]);
 
         $total = (float) $pedido->total;
-        $montoRecibido = isset($datos['monto_recibido'])
-            ? (float) $datos['monto_recibido']
-            : null;
 
-        // Si paga en efectivo, debe entregar suficiente dinero
         if ($datos['metodo_pago'] === 'efectivo') {
 
-            if ($montoRecibido === null || $montoRecibido < $total) {
-                throw new \Exception(
-                    'El monto recibido es insuficiente para pagar el pedido.'
-                );
+            $montoRecibido = (float) $datos['monto_recibido'];
+
+            if ($montoRecibido < $total) {
+                return back()
+                    ->withErrors([
+                        'monto_recibido' =>
+                            'El monto recibido es insuficiente. Faltan S/ ' .
+                            number_format(
+                                $total - $montoRecibido,
+                                2
+                            )
+                    ])
+                    ->withInput();
             }
 
-            $vuelto = $montoRecibido - $total;
+            $vuelto = round(
+                $montoRecibido - $total,
+                2
+            );
 
         } else {
 
-            // Para Yape, Plin o tarjeta no necesitamos vuelto
             $montoRecibido = null;
             $vuelto = null;
         }
 
-        $pedido->update([
-            'estado' => 'pagado',
-            'metodo_pago' => $datos['metodo_pago'],
-            'monto_recibido' => $montoRecibido,
-            'vuelto' => $vuelto,
-            'pagado_at' => now(),
-        ]);
+        DB::transaction(function () use (
+            $pedido,
+            $datos,
+            $montoRecibido,
+            $vuelto
+        ) {
 
-        // Liberamos la mesa
-        $pedido->mesa->update([
-            'estado' => 'disponible',
-        ]);
-    });
+            $pedido->update([
+                'estado' => 'pagado',
+                'metodo_pago' => $datos['metodo_pago'],
+                'monto_recibido' => $montoRecibido,
+                'vuelto' => $vuelto,
+                'pagado_at' => now(),
+            ]);
 
-    return redirect()
-        ->route('admin.pedidos.show', $pedido)
-        ->with('success', 'Pedido pagado correctamente.');
-}
+            $pedido->mesa->update([
+                'estado' => 'disponible',
+            ]);
+        });
+
+        return redirect()
+            ->route('admin.pedidos.show', $pedido)
+            ->with(
+                'success',
+                'Pedido pagado correctamente.'
+            );
+    }
+
+    public function cancelar(Pedido $pedido): RedirectResponse
+    {
+        // No permitir cancelar un pedido
+        // que ya fue pagado o cancelado.
+        if (in_array($pedido->estado, ['pagado', 'cancelado'])) {
+            return back()->with(
+                'error',
+                'Este pedido ya fue pagado o cancelado.'
+            );
+        }
+
+        DB::transaction(function () use ($pedido) {
+
+            $pedido->update([
+                'estado' => 'cancelado',
+            ]);
+
+            $pedido->mesa->update([
+                'estado' => 'disponible',
+            ]);
+        });
+
+        return redirect()
+            ->route('admin.pedidos.index')
+            ->with(
+                'success',
+                'Pedido cancelado correctamente. La mesa está disponible nuevamente.'
+            );
+    }
 }

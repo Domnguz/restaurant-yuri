@@ -51,11 +51,11 @@ Route::middleware(['auth', 'role:admin'])
             ->name('dashboard');
 
 
-/*
-|--------------------------------------------------------------------------
-| Pedidos
-|--------------------------------------------------------------------------
-*/
+        /*
+        |--------------------------------------------------------------------------
+        | Pedidos
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/pedidos', [\App\Http\Controllers\Admin\PedidoController::class, 'index'])
             ->name('pedidos.index');
@@ -65,9 +65,14 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::patch('/pedidos/{pedido}/estado', [\App\Http\Controllers\Admin\PedidoController::class, 'cambiarEstado'])
             ->name('pedidos.estado');
+
         Route::post('/pedidos/{pedido}/pago', [\App\Http\Controllers\Admin\PedidoController::class, 'finalizarPago'])
             ->name('pedidos.pago');
-            
+
+        Route::patch('/pedidos/{pedido}/cancelar', [\App\Http\Controllers\Admin\PedidoController::class, 'cancelar'])
+            ->name('pedidos.cancelar');
+
+
         /*
         |--------------------------------------------------------------------------
         | Productos
@@ -132,7 +137,7 @@ Route::middleware(['auth', 'role:mesero'])
             ->name('pedidos.create');
 
         Route::get('/pedidos/{mesa}/agregar', [PedidoController::class, 'agregar'])
-           ->name('pedidos.agregar');
+            ->name('pedidos.agregar');
 
         Route::post('/pedidos/{mesa}', [PedidoController::class, 'store'])
             ->name('pedidos.store');

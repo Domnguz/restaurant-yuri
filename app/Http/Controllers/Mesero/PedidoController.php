@@ -15,19 +15,23 @@ use Illuminate\View\View;
 
 class PedidoController extends Controller
 {
-    public function index(): View
-    {
-        $mesas = Mesa::with([
-            'pedidos' => function ($query) {
-                $query->whereNotIn('estado', ['pagado', 'cancelado'])
-                    ->latest();
-            }
-        ])
-        ->orderBy('numero')
-        ->get();
+public function index(): View
+{
+    $mesas = Mesa::with([
+        'pedidos' => function ($query) {
+            $query->whereNotIn('estado', ['pagado', 'cancelado'])
+                ->with([
+                    'detalles.productos',
+                    'detalles.componentesMixto',
+                ])
+                ->latest();
+        }
+    ])
+    ->orderBy('numero')
+    ->get();
 
-        return view('mesero.pedidos.index', compact('mesas'));
-    }
+    return view('mesero.pedidos.index', compact('mesas'));
+}
 
 
     /*

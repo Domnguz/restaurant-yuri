@@ -17,7 +17,20 @@ class ProductoController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        return view('admin.productos.index', compact('productos'));
+        $categorias = Categoria::where('activo', true)
+            ->with([
+                'productos' => function ($query) {
+                    $query->where('activo', true)
+                        ->orderBy('nombre');
+                }
+            ])
+            ->orderBy('nombre')
+            ->get();
+
+        return view('admin.productos.index', compact(
+            'productos',
+            'categorias'
+        ));
     }
 
     public function create(): View
@@ -53,23 +66,30 @@ class ProductoController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        return view('admin.productos.edit', compact('producto', 'categorias'));
+        return view('admin.productos.edit', compact(
+            'producto',
+            'categorias'
+        ));
     }
-    public function update(Request $request, Producto $producto): RedirectResponse
-{
-    $datos = $request->validate([
-        'categoria_id' => ['required', 'exists:categorias,id'],
-        'nombre' => ['required', 'string', 'max:255'],
-        'precio' => ['required', 'numeric', 'min:0'],
-        'activo' => ['nullable', 'boolean'],
-    ]);
 
-    $datos['activo'] = $request->boolean('activo');
+    public function update(
+        Request $request,
+        Producto $producto
+    ): RedirectResponse {
 
-    $producto->update($datos);
+        $datos = $request->validate([
+            'categoria_id' => ['required', 'exists:categorias,id'],
+            'nombre' => ['required', 'string', 'max:255'],
+            'precio' => ['required', 'numeric', 'min:0'],
+            'activo' => ['nullable', 'boolean'],
+        ]);
 
-    return redirect()
-        ->route('admin.productos.index')
-        ->with('success', 'Producto actualizado correctamente.');
-}
+        $datos['activo'] = $request->boolean('activo');
+
+        $producto->update($datos);
+
+        return redirect()
+            ->route('admin.productos.index')
+            ->with('success', 'Producto actualizado correctamente.');
+    }
 }
