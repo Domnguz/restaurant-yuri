@@ -11,27 +11,28 @@ use App\Models\Producto;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 
 class PedidoController extends Controller
 {
-public function index(): View
-{
-    $mesas = Mesa::with([
-        'pedidos' => function ($query) {
-            $query->whereNotIn('estado', ['pagado', 'cancelado'])
-                ->with([
-                    'detalles.productos',
-                    'detalles.componentesMixto',
-                ])
-                ->latest();
-        }
-    ])
-    ->orderBy('numero')
-    ->get();
+    public function index(): View
+    {
+        $mesas = Mesa::with([
+            'pedidos' => function ($query) {
+                $query->whereNotIn('estado', ['pagado', 'cancelado'])
+                    ->with([
+                        'detalles.productos',
+                        'detalles.componentesMixto',
+                    ])
+                    ->latest();
+            }
+        ])
+        ->orderBy('numero')
+        ->get();
 
-    return view('mesero.pedidos.index', compact('mesas'));
-}
+        return view('mesero.pedidos.index', compact('mesas'));
+    }
 
 
     /*
@@ -150,6 +151,12 @@ public function index(): View
         ]);
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Guardar todo en la base de datos
+        |--------------------------------------------------------------------------
+        */
+
         $resultado = DB::transaction(function () use (
             $datos,
             $mesa,
@@ -171,7 +178,6 @@ public function index(): View
             /*
             |--------------------------------------------------------------------------
             | Si NO existe pedido activo
-            | → crear uno nuevo
             |--------------------------------------------------------------------------
             */
 
@@ -243,7 +249,7 @@ public function index(): View
 
             /*
             |--------------------------------------------------------------------------
-            | Asegurar que la mesa esté ocupada
+            | Marcar mesa como ocupada
             |--------------------------------------------------------------------------
             */
 
@@ -255,6 +261,69 @@ public function index(): View
             return $pedido;
         });
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cargar datos completos del pedido
+        |--------------------------------------------------------------------------
+        */
+
+        $resultado->load([
+            'mesa',
+            'usuario',
+            'detalles.productos',
+            'detalles.componentesMixto',
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Avisar a Node.js que el pedido cambió
+        |--------------------------------------------------------------------------
+        */
+
+       try {
+
+    logger()->info('PASO 1: Laravel va a avisar a Node', [
+        'pedido_id' => $resultado->id,
+        'mesa' => $resultado->mesa->numero,
+    ]);
+
+    $respuestaNode = Http::timeout(5)->post(
+        'http://127.0.0.1:3001/api/pedidos/actualizado',
+        [
+            'pedido' => [
+                'id' => $resultado->id,
+                'mesa_id' => $resultado->mesa_id,
+                'mesa_numero' => $resultado->mesa->numero,
+                'zona' => $resultado->mesa->zona,
+                'estado' => $resultado->estado,
+                'total' => (float) $resultado->total,
+                'mesero' => $resultado->usuario->name,
+                'productos' => $resultado->detalles->count(),
+                'hora' => $resultado->updated_at->format('H:i'),
+            ]
+        ]
+    );
+
+    logger()->info('PASO 2: Node respondió', [
+        'status' => $respuestaNode->status(),
+        'body' => $respuestaNode->body(),
+    ]);
+
+} catch (\Exception $e) {
+
+    logger()->error('ERROR AL AVISAR A NODE', [
+        'mensaje' => $e->getMessage(),
+    ]);
+}
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Respuesta al mesero
+        |--------------------------------------------------------------------------
+        */
 
         return response()->json([
             'message' => 'Pedido guardado correctamente.',

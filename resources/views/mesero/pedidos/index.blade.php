@@ -1,284 +1,361 @@
 <x-mesero-layout>
-    <x-slot name="header">
-        <div>
-            <p class="text-sm font-semibold text-gray-500">
-                Atención al cliente
-            </p>
 
-            <h2 class="mt-1 text-2xl font-extrabold tracking-tight text-gray-950">
-                Mesas
-            </h2>
+<x-slot name="header">
+    <div>
+        <p class="text-sm font-semibold text-gray-500">
+            Atención al cliente
+        </p>
 
-            <p class="mt-1 text-sm text-gray-600">
-                Selecciona una mesa para atender al cliente.
-            </p>
+        <h2 class="mt-1 text-2xl font-extrabold tracking-tight text-gray-950">
+            Mesas
+        </h2>
+
+        <p class="mt-1 text-sm text-gray-600">
+            Selecciona una mesa para atender al cliente.
+        </p>
+    </div>
+</x-slot>
+
+
+<div class="min-h-screen bg-gray-50 py-6 pb-24">
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+
+        {{-- =========================
+            RESUMEN
+        ========================== --}}
+
+        <div class="bg-gray-900 rounded-3xl p-5 sm:p-6 text-white shadow-sm">
+
+            <div class="grid grid-cols-2 gap-4">
+
+                {{-- Disponibles --}}
+                <div>
+
+                    <p class="text-sm font-medium text-gray-300">
+                        Mesas disponibles
+                    </p>
+
+                    <p class="mt-1 text-3xl font-extrabold">
+                        {{ $mesas->where('estado', 'disponible')->count() }}
+                    </p>
+
+                </div>
+
+
+                {{-- Ocupadas --}}
+                <div>
+
+                    <p class="text-sm font-medium text-gray-300">
+                        Mesas ocupadas
+                    </p>
+
+                    <p class="mt-1 text-3xl font-extrabold">
+                        {{ $mesas->where('estado', 'ocupada')->count() }}
+                    </p>
+
+                </div>
+
+            </div>
+
         </div>
-    </x-slot>
 
 
-    <div class="min-h-screen bg-gray-50 py-6 pb-24">
 
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {{-- =========================
+            MESAS
+        ========================== --}}
 
-            {{-- Resumen --}}
-            <div class="bg-gray-900 rounded-3xl p-5 sm:p-6 text-white shadow-sm">
+        <div class="mt-6">
 
-                <div class="grid grid-cols-2 gap-4">
+            <div class="flex items-center justify-between mb-4">
 
-                    <div>
-                        <p class="text-sm font-medium text-gray-300">
-                            Mesas disponibles
-                        </p>
+                <div>
 
-                        <p class="mt-1 text-3xl font-extrabold">
-                            {{ $mesas->where('estado', 'disponible')->count() }}
-                        </p>
-                    </div>
+                    <h3 class="text-lg font-extrabold text-gray-950">
+                        Mesas
+                    </h3>
 
-                    <div>
-                        <p class="text-sm font-medium text-gray-300">
-                            Mesas ocupadas
-                        </p>
-
-                        <p class="mt-1 text-3xl font-extrabold">
-                            {{ $mesas->where('estado', 'ocupada')->count() }}
-                        </p>
-                    </div>
+                    <p class="text-sm text-gray-500">
+                        Selecciona una mesa para ver su pedido.
+                    </p>
 
                 </div>
 
             </div>
 
 
-            {{-- Mesas --}}
-            <div class="mt-6">
 
-                <div class="flex items-center justify-between mb-4">
+            {{-- GRID DE MESAS --}}
 
-                    <div>
-                        <h3 class="text-lg font-extrabold text-gray-950">
-                            Mesas
-                        </h3>
-
-                        <p class="text-sm text-gray-500">
-                            Selecciona una mesa para ver su pedido.
-                        </p>
-                    </div>
-
-                </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
 
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach ($mesas as $mesa)
 
-                    @foreach ($mesas as $mesa)
-
-                        @php
-                            $pedido = $mesa->pedidos->first();
-                        @endphp
+                    @php
+                        $pedido = $mesa->pedidos->first();
+                    @endphp
 
 
-                        {{-- MESA DISPONIBLE --}}
-                        @if ($mesa->estado === 'disponible')
 
-                            <a
-                                href="{{ route('admin.mesero.pedidos.create', $mesa) }}"
-                                class="group bg-white border border-gray-200 rounded-3xl p-5 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.98] transition"
-                            >
+                    {{-- ==========================================
+                        MESA DISPONIBLE
+                    =========================================== --}}
 
-                                <div class="flex items-start justify-between">
+                    @if ($mesa->estado === 'disponible')
 
-                                    <div class="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-2xl">
-                                        🪑
+                        <a
+                            href="{{ route('admin.mesero.pedidos.create', $mesa) }}"
+                            class="group bg-white border border-gray-200 rounded-2xl p-3 shadow-sm hover:shadow-md hover:border-gray-300 active:scale-[0.97] transition"
+                        >
+
+
+                            {{-- Icono + Estado --}}
+
+                            <div class="flex items-center justify-between">
+
+                                <div class="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center text-lg">
+                                    🪑
+                                </div>
+
+                                <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+
+                            </div>
+
+
+
+                            {{-- Información de mesa --}}
+
+                            <div class="mt-3">
+
+                                <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+                                    Mesa
+                                </p>
+
+                                <h4 class="mt-0.5 text-xl font-extrabold text-gray-950">
+                                    {{ $mesa->numero }}
+                                </h4>
+
+                                <p class="mt-0.5 text-xs text-gray-500 capitalize truncate">
+                                    {{ $mesa->zona }}
+                                </p>
+
+                            </div>
+
+
+
+                            {{-- Estado --}}
+
+                            <div class="mt-3">
+
+                                <span class="inline-flex items-center px-2 py-1 rounded-full bg-green-50 text-green-700 text-[10px] font-bold">
+                                    Disponible
+                                </span>
+
+                            </div>
+
+
+                        </a>
+
+
+
+                    {{-- ==========================================
+                        MESA OCUPADA
+                    =========================================== --}}
+
+                    @else
+
+                        <a
+                            href="{{ route('admin.mesero.pedidos.agregar', $mesa) }}"
+                            class="group bg-white border border-orange-200 rounded-2xl p-3 shadow-sm hover:shadow-md hover:border-orange-300 active:scale-[0.97] transition block"
+                        >
+
+
+                            {{-- Icono + Estado --}}
+
+                            <div class="flex items-center justify-between">
+
+                                <div class="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center text-lg">
+                                    🍽️
+                                </div>
+
+                                <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+
+                            </div>
+
+
+
+                            {{-- Información de mesa --}}
+
+                            <div class="mt-3">
+
+                                <p class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+                                    Mesa
+                                </p>
+
+                                <h4 class="mt-0.5 text-xl font-extrabold text-gray-950">
+                                    {{ $mesa->numero }}
+                                </h4>
+
+                                <p class="mt-0.5 text-xs text-gray-500 capitalize truncate">
+                                    {{ $mesa->zona }}
+                                </p>
+
+                            </div>
+
+
+
+                            {{-- ======================================
+                                PEDIDO ACTUAL
+                            ======================================= --}}
+
+                            @if ($pedido)
+
+                                <div class="mt-3 pt-3 border-t border-gray-100">
+
+
+                                    {{-- Estado del pedido --}}
+
+                                    <div class="flex items-center justify-between gap-2">
+
+                                        <p class="text-[11px] font-bold text-gray-900">
+                                            Pedido
+                                        </p>
+
+                                        <span class="text-[10px] font-bold text-orange-600">
+                                            {{ ucfirst($pedido->estado) }}
+                                        </span>
+
                                     </div>
 
-                                    <span class="w-3 h-3 rounded-full bg-green-500"></span>
-
-                                </div>
 
 
-                                <div class="mt-5">
+                                    {{-- Productos --}}
 
-                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                        Mesa
-                                    </p>
-
-                                    <h4 class="mt-1 text-2xl font-extrabold text-gray-950">
-                                        {{ $mesa->numero }}
-                                    </h4>
-
-                                    <p class="mt-1 text-sm text-gray-500 capitalize">
-                                        {{ $mesa->zona }}
-                                    </p>
-
-                                </div>
+                                    <div class="mt-2 space-y-2">
 
 
-                                <div class="mt-4">
+                                        @foreach ($pedido->detalles as $detalle)
 
-                                    <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-green-50 text-green-700 text-xs font-bold">
-                                        Disponible
-                                    </span>
-
-                                </div>
-
-                            </a>
+                                            <div class="bg-gray-50 rounded-xl p-2">
 
 
-                        {{-- MESA OCUPADA --}}
-                        @else
+                                                <div class="flex items-center justify-between gap-2">
 
-                            <a
-                                href="{{ route('admin.mesero.pedidos.agregar', $mesa) }}"
-                                class="group bg-white border border-orange-200 rounded-3xl p-5 shadow-sm hover:shadow-md hover:border-orange-300 active:scale-[0.98] transition block"
-                            >
+                                                    <div class="min-w-0">
 
-                                {{-- Cabecera --}}
-                                <div class="flex items-start justify-between">
+                                                        @foreach ($detalle->productos as $producto)
 
-                                    <div class="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-2xl">
-                                        🍽️
-                                    </div>
+                                                            <p class="text-xs font-bold text-gray-900 truncate">
+                                                                {{ $producto->nombre }}
+                                                            </p>
 
-                                    <span class="w-3 h-3 rounded-full bg-orange-500"></span>
-
-                                </div>
-
-
-                                {{-- Mesa --}}
-                                <div class="mt-5">
-
-                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                        Mesa
-                                    </p>
-
-                                    <h4 class="mt-1 text-2xl font-extrabold text-gray-950">
-                                        {{ $mesa->numero }}
-                                    </h4>
-
-                                    <p class="mt-1 text-sm text-gray-500 capitalize">
-                                        {{ $mesa->zona }}
-                                    </p>
-
-                                </div>
-
-
-                                {{-- Pedido actual --}}
-                                @if ($pedido)
-
-                                    <div class="mt-5 pt-4 border-t border-gray-100">
-
-                                        <div class="flex items-center justify-between">
-
-                                            <p class="text-sm font-bold text-gray-900">
-                                                Pedido actual
-                                            </p>
-
-                                            <span class="text-xs font-bold text-orange-600">
-                                                {{ ucfirst($pedido->estado) }}
-                                            </span>
-
-                                        </div>
-
-
-                                        {{-- Productos --}}
-                                        <div class="mt-3 space-y-3">
-
-                                            @foreach ($pedido->detalles as $detalle)
-
-                                                <div class="bg-gray-50 rounded-2xl p-3">
-
-                                                    <div class="flex items-center justify-between">
-
-                                                        <div>
-                                                            @foreach ($detalle->productos as $producto)
-
-                                                                <p class="text-sm font-bold text-gray-900">
-                                                                    {{ $producto->nombre }}
-                                                                </p>
-
-                                                            @endforeach
-                                                        </div>
-
-                                                        <p class="text-sm font-extrabold text-gray-900">
-                                                            S/ {{ number_format((float) $detalle->precio, 2) }}
-                                                        </p>
+                                                        @endforeach
 
                                                     </div>
 
 
-                                                    {{-- Componentes del Mixto --}}
-                                                    @if ($detalle->componentesMixto->count())
-
-                                                        <div class="mt-2 flex flex-wrap gap-1">
-
-                                                            @foreach ($detalle->componentesMixto as $componente)
-
-                                                                <span class="inline-flex items-center px-2 py-1 rounded-full bg-white border border-gray-200 text-[11px] font-medium text-gray-600">
-                                                                    {{ $componente->nombre }}
-                                                                </span>
-
-                                                            @endforeach
-
-                                                        </div>
-
-                                                    @endif
-
-
-                                                    {{-- Observaciones --}}
-                                                    @if ($detalle->observaciones)
-
-                                                        <p class="mt-2 text-xs text-gray-500">
-                                                            📝 {{ $detalle->observaciones }}
-                                                        </p>
-
-                                                    @endif
+                                                    <p class="text-xs font-extrabold text-gray-900 whitespace-nowrap">
+                                                        S/ {{ number_format((float) $detalle->precio, 2) }}
+                                                    </p>
 
                                                 </div>
 
-                                            @endforeach
-
-                                        </div>
 
 
-                                        {{-- Total --}}
-                                        <div class="mt-4 flex items-center justify-between">
+                                                {{-- Componentes del Mixto --}}
 
-                                            <span class="text-sm font-semibold text-gray-500">
-                                                Total acumulado
-                                            </span>
+                                                @if ($detalle->componentesMixto->count())
 
-                                            <span class="text-xl font-extrabold text-gray-950">
-                                                S/ {{ number_format((float) $pedido->total, 2) }}
-                                            </span>
+                                                    <div class="mt-1 flex flex-wrap gap-1">
 
-                                        </div>
+                                                        @foreach ($detalle->componentesMixto as $componente)
+
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-white border border-gray-200 text-[9px] font-medium text-gray-600">
+                                                                {{ $componente->nombre }}
+                                                            </span>
+
+                                                        @endforeach
+
+                                                    </div>
+
+                                                @endif
+
+
+
+                                                {{-- Observaciones --}}
+
+                                                @if ($detalle->observaciones)
+
+                                                    <p class="mt-1 text-[10px] text-gray-500 truncate">
+                                                        📝 {{ $detalle->observaciones }}
+                                                    </p>
+
+                                                @endif
+
+
+                                            </div>
+
+                                        @endforeach
+
 
                                     </div>
 
-                                @endif
 
 
-                                {{-- Botón --}}
-                                <div class="mt-5">
+                                    {{-- ==================================
+                                        TOTAL
+                                    =================================== --}}
 
-                                    <span class="inline-flex w-full justify-center items-center px-4 py-3 rounded-2xl bg-orange-50 text-orange-700 text-sm font-bold">
-                                        + Agregar pedido
-                                    </span>
+                                    <div class="mt-3 flex items-center justify-between">
+
+                                        <span class="text-[10px] font-semibold text-gray-500">
+                                            Total
+                                        </span>
+
+                                        <span class="text-base font-extrabold text-gray-950">
+                                            S/ {{ number_format((float) $pedido->total, 2) }}
+                                        </span>
+
+                                    </div>
+
 
                                 </div>
 
-                            </a>
+                            @endif
 
-                        @endif
 
-                    @endforeach
 
-                </div>
+                            {{-- ==================================
+                                BOTÓN AGREGAR PEDIDO
+                            =================================== --}}
+
+                            <div class="mt-3">
+
+                                <span class="inline-flex w-full justify-center items-center px-3 py-2 rounded-xl bg-orange-50 text-orange-700 text-xs font-bold">
+                                    + Agregar pedido
+                                </span>
+
+                            </div>
+
+
+                        </a>
+
+                    @endif
+
+
+                @endforeach
+
 
             </div>
 
         </div>
 
+
     </div>
+
+</div>
 
 </x-mesero-layout>
