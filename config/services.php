@@ -2,6 +2,13 @@
 
 return [
 
+    'realtime' => [
+        'url' => env('REALTIME_URL', 'http://127.0.0.1:3001'),
+        'public_url' => env('REALTIME_PUBLIC_URL'),
+        'port' => (int) env('REALTIME_PORT', 3001),
+        'secret' => env('REALTIME_SECRET') ?: env('APP_KEY'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

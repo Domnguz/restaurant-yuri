@@ -11,11 +11,19 @@ class DashboardController extends Controller
 {
     public function index(): View
     {
-        $ventasHoy = Pedido::whereDate('created_at', today())
+        $inicioHoy = today();
+        $finHoy = $inicioHoy->copy()->addDay();
+        $ventasPorDia = Pedido::where('pagado_at', '>=', $inicioHoy->copy()->subDays(6))
+            ->where('pagado_at', '<', $finHoy)
             ->where('estado', 'pagado')
-            ->sum('total');
+            ->selectRaw('DATE(pagado_at) as fecha, SUM(total) as ventas')
+            ->groupByRaw('DATE(pagado_at)')
+            ->pluck('ventas', 'fecha');
 
-        $pedidosHoy = Pedido::whereDate('created_at', today())
+        $ventasHoy = (float) ($ventasPorDia[$inicioHoy->format('Y-m-d')] ?? 0);
+
+        $pedidosHoy = Pedido::where('created_at', '>=', $inicioHoy)
+            ->where('created_at', '<', $finHoy)
             ->count();
 
         $mesasOcupadas = Mesa::where('estado', 'ocupada')
@@ -23,7 +31,9 @@ class DashboardController extends Controller
 
         $totalMesas = Mesa::count();
 
-        $ultimosPedidos = Pedido::with(['mesa', 'usuario'])
+        $pedidosActivos = Pedido::whereNotIn('estado', ['pagado', 'cancelado'])->count();
+
+        $ultimosPedidos = Pedido::with(['mesa', 'usuario', 'detalles.productos', 'detalles.componentesMixto'])
             ->latest()
             ->take(5)
             ->get();
@@ -34,13 +44,9 @@ class DashboardController extends Controller
         for ($i = 6; $i >= 0; $i--) {
             $fecha = today()->subDays($i);
 
-            $ventas = Pedido::whereDate('pagado_at', $fecha)
-                ->where('estado', 'pagado')
-                ->sum('total');
-
             $ventasSemana->push([
                 'fecha' => $fecha->format('d/m'),
-                'ventas' => (float) $ventas,
+                'ventas' => (float) ($ventasPorDia[$fecha->format('Y-m-d')] ?? 0),
             ]);
         }
 
@@ -49,6 +55,7 @@ class DashboardController extends Controller
             'pedidosHoy',
             'mesasOcupadas',
             'totalMesas',
+            'pedidosActivos',
             'ultimosPedidos',
             'ventasSemana'
         ));

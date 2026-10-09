@@ -22,7 +22,7 @@ class ProductoController extends Controller
                 'productos' => function ($query) {
                     $query->where('activo', true)
                         ->orderBy('nombre');
-                }
+                },
             ])
             ->orderBy('nombre')
             ->get();
@@ -44,14 +44,19 @@ class ProductoController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if ($request->boolean('precio_personalizado')) {
+            $request->merge(['precio' => null]);
+        }
         $datos = $request->validate([
             'categoria_id' => ['required', 'exists:categorias,id'],
             'nombre' => ['required', 'string', 'max:255'],
-            'precio' => ['required', 'numeric', 'min:0'],
+            'precio' => ['nullable', 'required_unless:precio_personalizado,1', 'numeric', 'min:0', 'max:99999999.99'],
+            'precio_personalizado' => ['nullable', 'boolean'],
             'activo' => ['nullable', 'boolean'],
         ]);
 
         $datos['activo'] = $request->boolean('activo');
+        unset($datos['precio_personalizado']);
 
         Producto::create($datos);
 
@@ -63,6 +68,7 @@ class ProductoController extends Controller
     public function edit(Producto $producto): View
     {
         $categorias = Categoria::where('activo', true)
+            ->orWhere('id', $producto->categoria_id)
             ->orderBy('nombre')
             ->get();
 
@@ -76,15 +82,19 @@ class ProductoController extends Controller
         Request $request,
         Producto $producto
     ): RedirectResponse {
-
+        if ($request->boolean('precio_personalizado')) {
+            $request->merge(['precio' => null]);
+        }
         $datos = $request->validate([
             'categoria_id' => ['required', 'exists:categorias,id'],
             'nombre' => ['required', 'string', 'max:255'],
-            'precio' => ['required', 'numeric', 'min:0'],
+            'precio' => ['nullable', 'required_unless:precio_personalizado,1', 'numeric', 'min:0', 'max:99999999.99'],
+            'precio_personalizado' => ['nullable', 'boolean'],
             'activo' => ['nullable', 'boolean'],
         ]);
 
         $datos['activo'] = $request->boolean('activo');
+        unset($datos['precio_personalizado']);
 
         $producto->update($datos);
 

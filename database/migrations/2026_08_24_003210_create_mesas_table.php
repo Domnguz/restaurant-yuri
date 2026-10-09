@@ -1,28 +1,24 @@
 <?php
 
-namespace Database\Seeders;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use App\Models\Mesa;
-use Illuminate\Database\Seeder;
-
-class MesaSeeder extends Seeder
+return new class extends Migration
 {
-    public function run(): void
+    public function up(): void
     {
-        for ($i = 1; $i <= 6; $i++) {
-            Mesa::create([
-                'numero' => $i,
-                'zona' => 'interior',
-                'estado' => 'disponible',
-            ]);
-        }
-
-        for ($i = 7; $i <= 8; $i++) {
-            Mesa::create([
-                'numero' => $i,
-                'zona' => 'exterior',
-                'estado' => 'disponible',
-            ]);
-        }
+        Schema::create('mesas', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedInteger('numero')->unique();
+            $table->enum('zona', ['interior', 'exterior'])->default('interior');
+            $table->enum('estado', ['disponible', 'ocupada', 'reservada'])->default('disponible');
+            $table->timestamps();
+        });
     }
-}
+
+    public function down(): void
+    {
+        Schema::dropIfExists('mesas');
+    }
+};

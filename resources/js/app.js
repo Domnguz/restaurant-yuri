@@ -1,44 +1,23 @@
 import Alpine from 'alpinejs';
-import { io } from 'socket.io-client';
+import restaurantLive from './restaurant-live';
+import waiterTables from './waiter-tables';
+import orderDetail from './order-detail';
+import restaurantDashboard from './restaurant-dashboard';
+import orderBoard from './order-board';
+import waiterOrder from './waiter-order';
 
 window.Alpine = Alpine;
+Alpine.data('orderBoard', orderBoard);
+Alpine.data('waiterOrder', waiterOrder);
+Alpine.data('waiterTables', waiterTables);
+Alpine.data('orderDetail', orderDetail);
+Alpine.data('restaurantDashboard', restaurantDashboard);
 
+Alpine.store('restaurant', restaurantLive({
+    enabled: document.body.dataset.realtime === 'true',
+    endpoint: document.body.dataset.realtimeUrl || import.meta.env.VITE_REALTIME_URL,
+    port: Number(document.body.dataset.realtimePort),
+    snapshotUrl: document.body.dataset.snapshotUrl,
+    tokenUrl: document.body.dataset.tokenUrl,
+}));
 Alpine.start();
-
-
-window.socket = io('http://localhost:3001');
-
-
-window.socket.on('connect', () => {
-
-    console.log(
-        '🟢 Conectado a Socket.IO:',
-        window.socket.id
-    );
-
-});
-
-
-window.socket.on('disconnect', () => {
-
-    console.log(
-        '🔴 Desconectado de Socket.IO'
-    );
-
-});
-
-
-window.socket.on('pedido_actualizado', (data) => {
-
-    console.log(
-        '🍽️ Pedido recibido EN VIVO:',
-        data
-    );
-
-    window.dispatchEvent(
-        new CustomEvent('pedido-actualizado', {
-            detail: data
-        })
-    );
-
-});

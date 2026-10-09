@@ -1,30 +1,33 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-
-        <title>{{ config('app.name', 'Laravel') }}</title>
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100 dark:bg-gray-900">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
-                </a>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#c85120">
+    <title>Mr. Yuri · Bienvenido</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="antialiased">
+    <div class="auth-layout">
+        <section class="auth-story">
+            <a href="{{ route('login') }}"><x-brand /></a>
+            <div class="relative z-10 my-12">
+                <p class="eyebrow !text-orange-300">EL SABOR DE UNA BUENA ATENCIÓN</p>
+                <h1>Más tiempo para<br>tus clientes.<br><span class="text-orange-300">Todo bajo control.</span></h1>
+                <p class="text-base leading-7">Desde el primer pedido hasta la última mesa. Organiza el día de tu restaurante con la sencillez que tu equipo necesita.</p>
+                <div class="flex flex-wrap gap-3 mt-8 text-xs text-gray-300"><span class="border border-white/15 rounded-full px-4 py-2">Pedidos por mesa</span><span class="border border-white/15 rounded-full px-4 py-2">Carta administrable</span><span class="border border-white/15 rounded-full px-4 py-2">Control de cobros</span></div>
             </div>
-
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white dark:bg-gray-800 shadow-md overflow-hidden sm:rounded-lg">
+            <p class="text-xs">Mr. Yuri · Restaurante & tradición</p>
+        </section>
+        <section class="auth-form-side">
+            <div class="auth-card">
+                <a href="{{ route('login') }}" class="block"><x-brand /></a>
                 {{ $slot }}
+                <p class="text-xs text-gray-400 text-center mt-8">Acceso para el equipo del restaurante</p>
             </div>
-        </div>
-    </body>
+        </section>
+    </div>
+</body>
 </html>

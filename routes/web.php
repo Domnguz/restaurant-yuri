@@ -5,16 +5,16 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductoController;
 use App\Http\Controllers\Mesero\PedidoController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RealtimeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return redirect()->route(auth()->user()->role === 'admin' ? 'admin.dashboard' : 'admin.mesero.pedidos.index');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
 
 /*
 |--------------------------------------------------------------------------
@@ -23,6 +23,9 @@ Route::get('/dashboard', function () {
 */
 
 Route::middleware('auth')->group(function () {
+
+    Route::get('/sistema/actualizaciones', [RealtimeController::class, 'snapshot'])->name('realtime.snapshot');
+    Route::get('/sistema/conexion', [RealtimeController::class, 'connection'])->name('realtime.connection');
 
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
@@ -34,7 +37,6 @@ Route::middleware('auth')->group(function () {
         ->name('profile.destroy');
 
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -50,28 +52,29 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/', [DashboardController::class, 'index'])
             ->name('dashboard');
 
-
         /*
         |--------------------------------------------------------------------------
         | Pedidos
         |--------------------------------------------------------------------------
         */
 
-        Route::get('/pedidos', [\App\Http\Controllers\Admin\PedidoController::class, 'index'])
+        Route::get('/pedidos', [App\Http\Controllers\Admin\PedidoController::class, 'index'])
             ->name('pedidos.index');
 
-        Route::get('/pedidos/{pedido}', [\App\Http\Controllers\Admin\PedidoController::class, 'show'])
+        Route::get('/pedidos/actualizaciones', [App\Http\Controllers\Admin\PedidoController::class, 'actualizaciones'])
+            ->name('pedidos.actualizaciones');
+
+        Route::get('/pedidos/{pedido}', [App\Http\Controllers\Admin\PedidoController::class, 'show'])
             ->name('pedidos.show');
 
-        Route::patch('/pedidos/{pedido}/estado', [\App\Http\Controllers\Admin\PedidoController::class, 'cambiarEstado'])
+        Route::patch('/pedidos/{pedido}/estado', [App\Http\Controllers\Admin\PedidoController::class, 'cambiarEstado'])
             ->name('pedidos.estado');
 
-        Route::post('/pedidos/{pedido}/pago', [\App\Http\Controllers\Admin\PedidoController::class, 'finalizarPago'])
+        Route::post('/pedidos/{pedido}/pago', [App\Http\Controllers\Admin\PedidoController::class, 'finalizarPago'])
             ->name('pedidos.pago');
 
-        Route::patch('/pedidos/{pedido}/cancelar', [\App\Http\Controllers\Admin\PedidoController::class, 'cancelar'])
+        Route::patch('/pedidos/{pedido}/cancelar', [App\Http\Controllers\Admin\PedidoController::class, 'cancelar'])
             ->name('pedidos.cancelar');
-
 
         /*
         |--------------------------------------------------------------------------
@@ -93,7 +96,6 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::put('/productos/{producto}', [ProductoController::class, 'update'])
             ->name('productos.update');
-
 
         /*
         |--------------------------------------------------------------------------
@@ -117,7 +119,6 @@ Route::middleware(['auth', 'role:admin'])
             ->name('categorias.update');
 
     });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -143,6 +144,5 @@ Route::middleware(['auth', 'role:mesero'])
             ->name('pedidos.store');
 
     });
-
 
 require __DIR__.'/auth.php';

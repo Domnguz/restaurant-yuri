@@ -1,107 +1,12 @@
-const express = require('express');
-const http = require('http');
-const cors = require('cors');
-const { Server } = require('socket.io');
+const { createRealtimeServer } = require('./app');
+const path = require('node:path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env'), quiet: true });
 
-const app = express();
-const server = http.createServer(app);
-
-app.use(cors());
-app.use(express.json());
-
-const io = new Server(server, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST'],
-    },
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| Conexiones Socket.IO
-|--------------------------------------------------------------------------
-*/
-
-io.on('connection', (socket) => {
-
-    console.log('🟢 Usuario conectado:', socket.id);
-
-    socket.on('disconnect', () => {
-        console.log('🔴 Usuario desconectado:', socket.id);
-    });
-
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| Ruta de prueba
-|--------------------------------------------------------------------------
-*/
-
-app.get('/', (req, res) => {
-
-    res.send(
-        'Servidor en tiempo real de Mr. Yuri funcionando ✅'
-    );
-
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| Laravel avisa que un pedido cambió
-|--------------------------------------------------------------------------
-*/
-
-app.post('/api/pedidos/actualizado', (req, res) => {
-
-    const datos = req.body;
-
-    console.log('');
-    console.log('🍽️ Pedido recibido desde Laravel');
-    console.log(datos);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Enviar a TODOS los navegadores conectados
-    |--------------------------------------------------------------------------
-    */
-
-    io.emit('pedido_actualizado', datos);
-
-    res.json({
-        ok: true,
-        message: 'Pedido enviado en tiempo real'
-    });
-
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| Encender servidor
-|--------------------------------------------------------------------------
-*/
-
-const PORT = process.env.PORT || 3001;
-
-server.listen(PORT, '0.0.0.0', () => {
-
-    console.log('');
-    console.log('======================================');
-    console.log('🍽️ MR. YURI - SERVIDOR EN TIEMPO REAL');
-    console.log('======================================');
-
-    console.log(
-        `🚀 Servidor ejecutándose en puerto ${PORT}`
-    );
-
-    console.log(
-        '🔌 Socket.IO esperando conexiones'
-    );
-
-    console.log('');
-
-});
+const secret = process.env.REALTIME_SECRET || process.env.APP_KEY;
+if (!secret) throw new Error('Configura APP_KEY o REALTIME_SECRET en el archivo .env de Laravel.');
+const origins = (process.env.REALTIME_ALLOWED_ORIGINS || '').split(',').map(value => value.trim()).filter(Boolean);
+const { server, io } = createRealtimeServer({ secret, origins });
+const port = Number(process.env.REALTIME_PORT || process.env.PORT || 3001);
+server.listen(port, '0.0.0.0', () => console.log(`Mr. Yuri · tiempo real disponible en puerto ${port}`));
+server.on('error', error => { console.error(`No se pudo iniciar Node: ${error.message}`); process.exitCode = 1; });
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => io.close(() => process.exit(0)));

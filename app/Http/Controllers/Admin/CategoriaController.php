@@ -12,7 +12,7 @@ class CategoriaController extends Controller
 {
     public function index(): View
     {
-        $categorias = Categoria::orderBy('nombre')->get();
+        $categorias = Categoria::withCount('productos')->orderBy('nombre')->get();
 
         return view('admin.categorias.index', compact('categorias'));
     }
@@ -37,6 +37,7 @@ class CategoriaController extends Controller
             ->route('admin.categorias.index')
             ->with('success', 'Categoría creada correctamente.');
     }
+
     public function edit(Categoria $categoria): View
     {
         return view('admin.categorias.edit', compact('categoria'));
@@ -57,7 +58,4 @@ class CategoriaController extends Controller
             ->route('admin.categorias.index')
             ->with('success', 'Categoría actualizada correctamente.');
     }
-
-
-
-    }
+}
