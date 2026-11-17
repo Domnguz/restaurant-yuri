@@ -160,3 +160,45 @@
 .payment-option { display:flex; align-items:center; justify-content:center; padding:12px; border:1px solid #e8e2d9; border-radius:9px; font-size:13px; cursor:pointer; }
 .payment-option.selected { border-color:#c85120; background:#fff0e7; color:#ad431a; font-weight:700; }
 .payment-option:focus-within { outline:3px solid #eb7b42; outline-offset:2px; }
+
+.public-home { min-height:100vh; background:#f8f5ef; color:#28251f; }
+.public-header { min-height:86px; max-width:1200px; margin:0 auto; padding:16px 32px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+.public-brand { display:flex; align-items:center; gap:12px; }
+.public-brand img { border-radius:14px; }
+.public-brand strong,.public-brand small { display:block; }
+.public-brand strong { font-size:20px; line-height:1.2; letter-spacing:-.04em; }
+.public-brand small { margin-top:4px; color:#766e65; font-size:10px; letter-spacing:.1em; text-transform:uppercase; }
+.public-login { min-height:44px; display:inline-flex; align-items:center; justify-content:center; padding:9px 16px; border:1px solid #e8e2d9; border-radius:10px; background:#fff; font-size:14px; font-weight:600; }
+.public-login:hover { border-color:#c85120; color:#ad431a; }
+.public-hero { max-width:1200px; min-height:570px; margin:28px auto 0; padding:32px; display:grid; grid-template-columns:.88fr 1.12fr; gap:48px; align-items:center; }
+.public-hero-copy { padding:28px 0 28px 34px; }
+.public-eyebrow { color:#a64c25; font-size:12px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
+.public-hero h1 { max-width:520px; margin:18px 0; font-family:Georgia,serif; font-size:clamp(46px,6vw,76px); font-weight:500; letter-spacing:-.055em; line-height:1.03; }
+.public-hero-copy > p:not(.public-eyebrow) { max-width:430px; color:#625a52; font-size:17px; line-height:1.8; }
+.public-cta { min-height:48px; margin-top:28px; display:inline-flex; align-items:center; gap:14px; padding:11px 18px; border-radius:10px; background:#c85120; color:white; font-weight:700; }
+.public-cta:hover { background:#ac4018; }
+.public-hero-image { min-height:480px; border-radius:24px; background:#e7ded1 url('/images/restaurant-table.jpg') center/cover no-repeat; box-shadow:0 24px 70px #28251f1a; }
+.public-welcome { max-width:680px; margin:50px auto 80px; padding:0 28px; text-align:center; }
+.public-welcome h2 { margin:12px 0; font-family:Georgia,serif; font-size:clamp(30px,4vw,44px); font-weight:500; }
+.public-welcome > p:last-child { color:#625a52; line-height:1.8; }
+.public-footer { min-height:72px; max-width:1200px; margin:0 auto; padding:20px 32px; display:flex; justify-content:space-between; gap:16px; border-top:1px solid #e8e2d9; color:#766e65; font-size:13px; }
+@media(max-width:760px) {
+ .public-header { min-height:72px; padding:12px 18px; }
+ .public-brand img { width:38px; height:38px; }
+ .public-brand strong { font-size:18px; }
+ .public-brand small { font-size:9px; letter-spacing:.06em; }
+ .public-login { min-height:42px; padding:8px 11px; font-size:12px; }
+ .public-hero { min-height:0; margin:8px auto 0; padding:12px 18px; grid-template-columns:1fr; gap:26px; }
+ .public-hero-copy { padding:22px 4px 0; }
+ .public-hero h1 { max-width:440px; margin:14px 0; font-size:clamp(44px,12vw,64px); }
+ .public-hero-copy > p:not(.public-eyebrow) { font-size:16px; }
+ .public-hero-image { min-height:280px; border-radius:18px; }
+ .public-welcome { margin:42px auto 58px; }
+ .public-footer { padding:18px; font-size:12px; }
+}
+@media(max-width:370px) {
+ .public-brand { gap:8px; }
+ .public-brand small { letter-spacing:0; }
+ .public-login { padding-inline:9px; }
+ .public-hero-image { min-height:230px; }
+}

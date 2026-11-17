@@ -1,7 +1,7 @@
 <?php
 
-it('redirects the restaurant entry point to login', function () {
+it('renders the public restaurant welcome page with staff login access', function () {
     $response = $this->get('/');
 
-    $response->assertRedirect(route('login'));
+    $response->assertOk()->assertSee('Mr. Yuri')->assertSee(route('login'), false);
 });

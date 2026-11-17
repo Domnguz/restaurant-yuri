@@ -4,7 +4,7 @@
         ['route' => 'admin.mesero.pedidos.index', 'match' => 'admin.mesero.*', 'label' => 'Tomar pedidos', 'icon' => 'table'],
     ] : [
         ['route' => 'admin.dashboard', 'match' => 'admin.dashboard', 'label' => 'Resumen', 'icon' => 'home'],
-        ['route' => 'admin.pedidos.index', 'match' => 'admin.pedidos.*', 'label' => 'Pedidos y mesas', 'icon' => 'orders'],
+        ['route' => 'admin.pedidos.index', 'match' => 'admin.pedidos.*', 'label' => 'Pedidos', 'icon' => 'orders'],
         ['route' => 'admin.productos.index', 'match' => 'admin.productos.*', 'label' => 'Carta de productos', 'icon' => 'plate'],
         ['route' => 'admin.categorias.index', 'match' => 'admin.categorias.*', 'label' => 'Categorías', 'icon' => 'categories'],
     ];

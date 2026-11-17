@@ -1,11 +1,11 @@
 @props(['producto', 'componentes'])
-<div class="mixto-options" x-data="{ mixtoPrice: {{ $producto->precios_personalizacion[0] }}, mixtoComponents: @js($componentes->pluck('id')->map(fn($id) => (string)$id)->values()), mixtoError: '', mixtoAdded: false }">
+<div class="mixto-options" x-data="{ mixtoPrice: {{ $producto->precios_personalizacion[0] }}, mixtoComponents: @js($componentes->pluck('id')->map(fn($id) => (string)$id)->values()), mixtoDelivery: false, mixtoError: '', mixtoAdded: false }">
     <fieldset>
         <legend class="text-sm font-semibold mb-3">Precio del mixto</legend>
         <div class="flex flex-wrap gap-2">
             @foreach($producto->precios_personalizacion as $precio)
                 <label class="mixto-price" :class="{ selected: mixtoPrice === {{ $precio }} }">
-                    <input type="radio" name="mixto-precio-{{ $producto->id }}" value="{{ $precio }}" x-model.number="mixtoPrice" class="sr-only">
+                    <input type="radio" name="mixto-precio-{{ $producto->id }}" value="{{ $precio }}" x-model.number="mixtoPrice" @change="mixtoAdded = false" class="sr-only">
                     S/ {{ number_format($precio, 2) }}
                 </label>
             @endforeach
@@ -24,9 +24,17 @@
         </div>
         @if($componentes->isEmpty())<p class="text-sm text-amber-800 bg-amber-50 p-3 rounded-lg">No hay componentes disponibles para armar el mixto.</p>@endif
     </fieldset>
+    <fieldset class="mt-5">
+        <legend class="text-sm font-semibold mb-2">¿Es para delivery?</legend>
+        <label class="mixto-component" :class="{ selected: mixtoDelivery }">
+            <input type="checkbox" value="1" x-model="mixtoDelivery" @change="mixtoAdded = false" class="rounded text-orange-600">
+            <span class="flex-1 font-medium">Delivery · Incluye tarrina (+ S/ 1.00)</span>
+            <strong class="text-xs text-orange-700" x-show="mixtoDelivery" x-cloak>+ S/ 1.00</strong>
+        </label>
+    </fieldset>
     <p role="alert" class="text-sm text-red-700 mt-3" x-show="mixtoError" x-text="mixtoError" x-cloak></p>
-    <p role="status" class="text-sm text-green-700 mt-3" x-show="mixtoAdded" x-cloak>Mixto agregado con los componentes seleccionados.</p>
-    <button type="button" class="ui-button w-full mt-5" @disabled($componentes->isEmpty()) @click="mixtoError = addMixto({{ $producto->id }}, mixtoPrice, mixtoComponents); mixtoAdded = !mixtoError">
-        <x-icon name="plus" />Agregar mixto <span x-text="money(mixtoPrice)"></span>
+    <p role="status" class="text-sm text-green-700 mt-3" x-show="mixtoAdded" x-cloak x-text="mixtoDelivery ? 'Mixto para delivery (+ S/ 1.00 tarrina) agregado.' : 'Mixto agregado con los componentes seleccionados.'"></p>
+    <button type="button" class="ui-button w-full mt-5" @disabled($componentes->isEmpty()) @click="mixtoError = addMixto({{ $producto->id }}, mixtoPrice, mixtoComponents, mixtoDelivery); mixtoAdded = !mixtoError">
+        <x-icon name="plus" />Agregar mixto <span x-text="money(mixtoPrice + (mixtoDelivery ? 1 : 0))"></span>
     </button>
 </div>

@@ -26,16 +26,18 @@ export default function waiterOrder(catalog, components, endpoint, backUrl, prev
             if (product.personalizable) return;
             this.put(product, Number(product.precio));
         },
-        addMixto(id, price, selected) {
+        addMixto(id, price, selected, delivery = false) {
             const product = this.catalog.find(p => p.id === id);
             const ids = [...new Set(selected.map(Number))].filter(id => this.components.some(c => c.id === id));
             if (!product?.personalizable || !product.precios_personalizacion.includes(Number(price))) return 'Selecciona un precio válido.';
             if (ids.length === 0) return 'Selecciona al menos un componente para el mixto.';
-            this.put(product, Number(price), ids);
+            const isDelivery = Boolean(delivery);
+            const basePrice = Number(price);
+            this.put(product, basePrice + (isDelivery ? 1 : 0), ids, isDelivery, basePrice);
             return '';
         },
-        put(product, price, ids = []) {
-            this.items.push({ key: this.nextKey++, producto_id: product.id, nombre: product.nombre, precio: price, componente_ids: ids, componentes: ids.map(id => this.components.find(c => c.id === id)?.nombre).filter(Boolean).join(', '), observaciones: '' });
+        put(product, price, ids = [], delivery = false, basePrice = null) {
+            this.items.push({ key: this.nextKey++, producto_id: product.id, nombre: delivery ? `${product.nombre} · Delivery (+S/ 1.00 tarrina)` : product.nombre, precio: price, precio_base: basePrice ?? price, delivery: Boolean(delivery), componente_ids: ids, componentes: ids.map(id => this.components.find(c => c.id === id)?.nombre).filter(Boolean).join(', '), observaciones: '' });
         },
         async submit() {
             if (this.sending || this.blocked || this.items.length === 0) return;

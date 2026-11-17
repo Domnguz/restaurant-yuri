@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Categoria;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class CategoriaController extends Controller
@@ -25,7 +26,7 @@ class CategoriaController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $datos = $request->validate([
-            'nombre' => ['required', 'string', 'max:255'],
+            'nombre' => ['required', 'string', 'max:255', Rule::unique('categorias', 'nombre')],
             'activo' => ['nullable', 'boolean'],
         ]);
 
@@ -46,7 +47,7 @@ class CategoriaController extends Controller
     public function update(Request $request, Categoria $categoria): RedirectResponse
     {
         $datos = $request->validate([
-            'nombre' => ['required', 'string', 'max:255'],
+            'nombre' => ['required', 'string', 'max:255', Rule::unique('categorias', 'nombre')->ignore($categoria->id)],
             'activo' => ['nullable', 'boolean'],
         ]);
 

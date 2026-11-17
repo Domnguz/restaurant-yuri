@@ -59,6 +59,10 @@ it('lets the administrator manage fixed and customizable prices', function () {
         'precio' => 10.50, 'activo' => 0,
     ])->assertSessionHasNoErrors();
     expect($product->fresh()->precio)->toBe('10.50')->and($product->fresh()->activo)->toBeFalse();
+
+    $this->post(route('admin.categorias.store'), [
+        'nombre' => 'Mixtos', 'activo' => 1,
+    ])->assertSessionHasErrors('nombre');
 });
 
 it('registers a waiter order using the current menu price and preserves notes', function () {

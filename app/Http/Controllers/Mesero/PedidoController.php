@@ -133,6 +133,17 @@ class PedidoController extends Controller
                 'min:0',
             ],
 
+            'items.*.precio_base' => [
+                'nullable',
+                'numeric',
+                'min:0',
+            ],
+
+            'items.*.delivery' => [
+                'nullable',
+                'boolean',
+            ],
+
             'items.*.componente_ids' => [
                 'nullable',
                 'array',
@@ -179,6 +190,7 @@ class PedidoController extends Controller
             $pedido = $mesa->pedidos()
                 ->whereNotIn('estado', ['pagado', 'cancelado'])
                 ->latest()
+                ->lockForUpdate()
                 ->first();
 
             if (isset($datos['pedido_id']) && (! $pedido || $pedido->id !== (int) $datos['pedido_id'])) {
@@ -223,12 +235,16 @@ class PedidoController extends Controller
                     throw ValidationException::withMessages(['items' => 'Un producto ya no está disponible. Actualiza la carta.']);
                 }
 
+                $esDelivery = ! empty($item['delivery']);
+
                 if ($producto->personalizable) {
-                    $precio = (float) $item['precio'];
+                    $precioBase = isset($item['precio_base']) ? (float) $item['precio_base'] : (float) $item['precio'];
                     $precios = array_map('floatval', $producto->precios_personalizacion);
-                    if (! in_array($precio, $precios, true)) {
+                    if (! in_array($precioBase, $precios, true)) {
                         throw ValidationException::withMessages(['items' => 'Selecciona un precio válido para el mixto.']);
                     }
+
+                    $precio = $precioBase + ($esDelivery ? 1.0 : 0.0);
 
                     $componentes = array_values(array_unique($item['componente_ids'] ?? []));
                     if (empty($componentes) || ComponenteMixto::where('activo', true)->whereIn('id', $componentes)->count() !== count($componentes)) {
@@ -239,9 +255,16 @@ class PedidoController extends Controller
                     if (! empty($item['componente_ids'])) {
                         throw ValidationException::withMessages(['items' => 'Los componentes solo se pueden agregar a un mixto.']);
                     }
+                    if ($esDelivery) {
+                        throw ValidationException::withMessages(['items' => 'El recargo de tarrina por delivery solo aplica al mixto.']);
+                    }
                 }
 
-                $notas = array_filter([$item['observaciones'] ?? null, $datos['observaciones'] ?? null]);
+                $notas = array_filter([
+                    $esDelivery ? 'Delivery (con tarrina +S/ 1.00)' : null,
+                    $item['observaciones'] ?? null,
+                    $datos['observaciones'] ?? null,
+                ]);
 
                 $detalle = $pedido->detalles()->create([
                     'precio' => $precio,

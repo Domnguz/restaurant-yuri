@@ -1,6 +1,6 @@
-export default function orderDetail(order, method, received) {
+export default function orderDetail(order, method, received, receiptType, customerName, customerDocument, customerAddress) {
     return {
-        order, method, received,
+        order, method, received, receiptType, customerName, customerDocument, customerAddress,
         init() {
             this.sync(this.$store.restaurant.snapshot);
             this.$watch('$store.restaurant.snapshot', data => this.sync(data));

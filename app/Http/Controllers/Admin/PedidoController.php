@@ -38,6 +38,14 @@ class PedidoController extends Controller
         return view('admin.pedidos.show', compact('pedido'));
     }
 
+    public function comprobante(Pedido $pedido): View
+    {
+        abort_unless($pedido->estado === 'pagado', 404);
+        $pedido->load(['mesa', 'usuario', 'detalles.productos', 'detalles.componentesMixto']);
+
+        return view('admin.pedidos.comprobante', compact('pedido'));
+    }
+
     public function cambiarEstado(Request $request, Pedido $pedido): JsonResponse|RedirectResponse
     {
         $data = $request->validate(['estado' => ['required', 'in:pendiente,listo,entregado'], 'total_revisado' => ['nullable', 'numeric', 'min:0']]);
@@ -55,7 +63,17 @@ class PedidoController extends Controller
             'metodo_pago' => ['required', 'in:efectivo,yape,plin,tarjeta'],
             'monto_recibido' => ['nullable', 'numeric', 'min:0', 'required_if:metodo_pago,efectivo'],
             'total_revisado' => ['nullable', 'numeric', 'min:0'],
+            'comprobante_tipo' => ['required', 'in:boleta,factura'],
+            'cliente_nombre' => ['nullable', 'string', 'max:160', 'required_if:comprobante_tipo,factura'],
+            'cliente_documento' => ['nullable', 'string', 'max:20', 'required_if:comprobante_tipo,factura'],
+            'cliente_direccion' => ['nullable', 'string', 'max:255', 'required_if:comprobante_tipo,factura'],
         ]);
+        if ($data['comprobante_tipo'] === 'factura' && ! preg_match('/^\d{11}$/', $data['cliente_documento'])) {
+            throw ValidationException::withMessages(['cliente_documento' => 'Para emitir una factura interna, ingresa un RUC de 11 dígitos.']);
+        }
+        if ($data['comprobante_tipo'] === 'boleta' && ! empty($data['cliente_documento']) && ! preg_match('/^(\d{8}|\d{11})$/', $data['cliente_documento'])) {
+            throw ValidationException::withMessages(['cliente_documento' => 'Ingresa un DNI de 8 dígitos o un RUC de 11 dígitos.']);
+        }
         $pedido = $this->change($pedido, function ($order) use ($data) {
             $this->checkReviewedTotal($order, $data);
             $received = $data['metodo_pago'] === 'efectivo' ? (float) $data['monto_recibido'] : null;
@@ -65,6 +83,10 @@ class PedidoController extends Controller
             $order->update([
                 'estado' => 'pagado', 'metodo_pago' => $data['metodo_pago'], 'monto_recibido' => $received,
                 'vuelto' => $received !== null ? round($received - (float) $order->total, 2) : null, 'pagado_at' => now(),
+                'comprobante_tipo' => $data['comprobante_tipo'],
+                'cliente_nombre' => $data['cliente_nombre'] ?? 'Cliente',
+                'cliente_documento' => $data['cliente_documento'] ?? null,
+                'cliente_direccion' => $data['cliente_direccion'] ?? null,
             ]);
             $order->mesa->update(['estado' => 'disponible']);
         }, 'paid');

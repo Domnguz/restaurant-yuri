@@ -46,6 +46,6 @@ class Producto extends Model
         return $this->belongsToMany(
             PedidoDetalle::class,
             'pedido_detalle_producto'
-        )->withPivot('precio')->withTimestamps();
+        )->withTimestamps();
     }
 }

@@ -9,7 +9,19 @@ use App\Http\Controllers\RealtimeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('welcome');
+})->name('home');
+
+Route::get('/sitemap.xml', function () {
+    return response()->view('sitemap', [
+        'pages' => [url('/')],
+    ])->header('Content-Type', 'application/xml; charset=UTF-8');
+})->name('sitemap');
+
+Route::get('/robots.txt', function () {
+    return response()->view('robots', [
+        'sitemap' => url('/sitemap.xml'),
+    ])->header('Content-Type', 'text/plain; charset=UTF-8');
 });
 
 Route::get('/dashboard', function () {
@@ -66,6 +78,9 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('/pedidos/{pedido}', [App\Http\Controllers\Admin\PedidoController::class, 'show'])
             ->name('pedidos.show');
+
+        Route::get('/pedidos/{pedido}/comprobante', [App\Http\Controllers\Admin\PedidoController::class, 'comprobante'])
+            ->name('pedidos.comprobante');
 
         Route::patch('/pedidos/{pedido}/estado', [App\Http\Controllers\Admin\PedidoController::class, 'cambiarEstado'])
             ->name('pedidos.estado');

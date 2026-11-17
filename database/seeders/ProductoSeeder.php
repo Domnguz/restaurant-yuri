@@ -10,6 +10,17 @@ class ProductoSeeder extends Seeder
 {
     public function run(): void
     {
+        $mixto = Categoria::where('nombre', 'Mixto')->first();
+
+        if ($mixto) {
+            Producto::create([
+                'categoria_id' => $mixto->id,
+                'nombre' => 'Mixto',
+                'precio' => null,
+                'activo' => true,
+            ]);
+        }
+
         $bebidas = Categoria::where('nombre', 'Bebidas')->first();
 
         $productos = [

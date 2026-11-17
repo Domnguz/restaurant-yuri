@@ -60,3 +60,27 @@ it('still lets a mixto with a fixed positive price select ingredients', function
     ])->assertOk();
     expect(Pedido::first()->total)->toBe('9.50');
 });
+
+it('adds 1 sol for tarrina and records delivery note when mixto is marked for delivery', function () {
+    $this->actingAs($this->waiter)->get(route('admin.mesero.pedidos.create', $this->table))
+        ->assertOk()
+        ->assertSee('Delivery · Incluye tarrina (+ S/ 1.00)');
+
+    $this->actingAs($this->waiter)->postJson(route('admin.mesero.pedidos.store', $this->table), [
+        'items' => [[
+            'producto_id' => $this->mixto->id,
+            'precio' => 13,
+            'precio_base' => 12,
+            'delivery' => true,
+            'componente_ids' => [$this->mondongo->id, $this->chanfaina->id],
+            'observaciones' => 'Poco picante',
+        ]],
+    ])->assertOk();
+
+    $order = Pedido::first();
+    $detail = $order->detalles->first();
+
+    expect($order->total)->toBe('13.00')
+        ->and($detail->precio)->toBe('13.00')
+        ->and($detail->observaciones)->toBe('Delivery (con tarrina +S/ 1.00) · Poco picante');
+});

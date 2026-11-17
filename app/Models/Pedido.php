@@ -17,6 +17,10 @@ class Pedido extends Model
         'monto_recibido',
         'vuelto',
         'pagado_at',
+        'comprobante_tipo',
+        'cliente_nombre',
+        'cliente_documento',
+        'cliente_direccion',
     ];
 
     protected $casts = [
