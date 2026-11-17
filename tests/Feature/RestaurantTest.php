@@ -39,10 +39,41 @@ it('renders the restaurant management and waiter pages for their roles', functio
     $this->get(route('admin.productos.edit', $product))->assertOk();
     $this->get(route('admin.categorias.edit', $category))->assertOk();
 
-    $this->actingAs($waiter)->get(route('admin.mesero.pedidos.index'))->assertOk();
+    $this->actingAs($waiter)->get(route('admin.mesero.pedidos.index'))
+        ->assertOk()->assertSee('Agregar mesa')->assertSee(route('admin.mesero.mesas.store'));
     $this->get(route('admin.mesero.pedidos.create', $table))->assertOk();
     $this->get(route('admin.mesero.pedidos.agregar', $table))->assertRedirect(route('admin.mesero.pedidos.index'));
     $this->get(route('admin.productos.index'))->assertForbidden();
+});
+
+it('lets waiters add interior and exterior tables with automatic numbering', function () {
+    $waiter = User::factory()->create(['role' => 'mesero']);
+    $admin = User::factory()->create(['role' => 'admin']);
+
+    foreach (range(1, 8) as $number) {
+        Mesa::create([
+            'numero' => $number,
+            'zona' => $number <= 6 ? 'interior' : 'exterior',
+            'estado' => 'disponible',
+        ]);
+    }
+
+    $this->actingAs($admin)->post(route('admin.mesero.mesas.store'), ['zona' => 'exterior'])
+        ->assertForbidden();
+    expect(Mesa::count())->toBe(8);
+
+    $this->actingAs($waiter)->post(route('admin.mesero.mesas.store'), ['zona' => 'interior'])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('admin.mesero.pedidos.index'))
+        ->assertSessionHas('success', 'Mesa #9 agregada en zona interior.');
+
+    $this->post(route('admin.mesero.mesas.store'), ['zona' => 'exterior'])
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('success', 'Mesa #10 agregada en zona exterior.');
+
+    expect(Mesa::where('numero', 9)->value('zona'))->toBe('interior')
+        ->and(Mesa::where('numero', 10)->value('zona'))->toBe('exterior')
+        ->and(Mesa::whereIn('numero', [9, 10])->where('estado', 'disponible')->count())->toBe(2);
 });
 
 it('lets the administrator manage fixed and customizable prices', function () {

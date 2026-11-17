@@ -149,6 +149,9 @@ Route::middleware(['auth', 'role:mesero'])
         Route::get('/pedidos', [PedidoController::class, 'index'])
             ->name('pedidos.index');
 
+        Route::post('/mesas', [PedidoController::class, 'storeMesa'])
+            ->name('mesas.store');
+
         Route::get('/pedidos/{mesa}/crear', [PedidoController::class, 'create'])
             ->name('pedidos.create');
 

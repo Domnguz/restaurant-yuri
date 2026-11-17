@@ -36,6 +36,30 @@ class PedidoController extends Controller
         return view('mesero.pedidos.index', compact('mesas'));
     }
 
+    public function storeMesa(Request $request): RedirectResponse
+    {
+        $datos = $request->validate([
+            'zona' => ['required', 'in:interior,exterior'],
+        ]);
+
+        $mesa = DB::transaction(function () use ($datos) {
+            $ultimoNumero = Mesa::query()
+                ->orderByDesc('numero')
+                ->lockForUpdate()
+                ->value('numero');
+
+            return Mesa::create([
+                'numero' => ((int) $ultimoNumero) + 1,
+                'zona' => $datos['zona'],
+                'estado' => 'disponible',
+            ]);
+        }, 3);
+
+        return redirect()
+            ->route('admin.mesero.pedidos.index')
+            ->with('success', 'Mesa #'.$mesa->numero.' agregada en zona '.$mesa->zona.'.');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Crear primer pedido

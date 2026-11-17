@@ -153,10 +153,32 @@
 .quick-link small { display:block; font-size:11px; color:#8a8177; margin-top:4px; }
 .quick-link:hover strong { color:#c85120; }
 @media(max-width:420px) { .sales-chart { gap:8px; } .sales-amount { font-size:9px; } }
+@media(max-width:700px) {
+ .table-toolbar { align-items:stretch; flex-direction:column; gap:12px; }
+ .table-zone-filters { overflow-x:auto; }
+ .table-toolbar-actions { display:grid; grid-template-columns:minmax(0,1fr) auto; }
+ .table-status-filter { min-width:0; width:100%; }
+ .add-table-button { min-height:46px; padding:9px 12px; font-size:12px; }
+}
+@media(max-width:420px) {
+ .table-toolbar-actions { grid-template-columns:1fr; }
+ .table-modal { padding:20px; }
+ .table-modal-actions { display:grid; grid-template-columns:1fr 1fr; }
+}
 .table-tile { border:1px solid #e8e2d9; border-radius:12px; padding:16px; background:#fafbf8; }
 .table-tile > div > .ui-icon { color:#5b7e5a; }
 .table-tile.occupied { background:#fff7ef; border-color:#f0d8c2; }
 .table-tile.occupied > div > .ui-icon { color:#c85120; }
+.table-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:24px; }
+.table-zone-filters,.table-toolbar-actions { display:flex; align-items:center; gap:10px; }
+.table-status-filter { width:auto; min-width:190px; }
+.add-table-button { white-space:nowrap; }
+.table-modal-backdrop { position:fixed; inset:0; z-index:80; display:grid; place-items:center; padding:20px; background:#211f1bb8; backdrop-filter:blur(4px); }
+.table-modal { width:min(100%,440px); padding:25px; border:1px solid #e8e2d9; border-radius:20px; background:#fff; box-shadow:0 24px 70px #211f1b3d; }
+.table-modal-heading { display:flex; align-items:center; justify-content:space-between; }
+.table-modal-close { display:grid; place-items:center; width:38px; height:38px; border:1px solid #e8e2d9; border-radius:11px; color:#766e65; font-size:23px; transition:background .16s,color .16s; }
+.table-modal-close:hover { background:#f7f5f0; color:#28251f; }
+.table-modal-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
 .payment-option { display:flex; align-items:center; justify-content:center; padding:12px; border:1px solid #e8e2d9; border-radius:9px; font-size:13px; cursor:pointer; }
 .payment-option.selected { border-color:#c85120; background:#fff0e7; color:#ad431a; font-weight:700; }
 .payment-option:focus-within { outline:3px solid #eb7b42; outline-offset:2px; }
