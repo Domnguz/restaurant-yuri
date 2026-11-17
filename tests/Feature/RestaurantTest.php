@@ -114,7 +114,7 @@ it('registers a waiter order using the current menu price and preserves notes', 
 
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->get(route('admin.pedidos.show', $order))->assertOk()->assertSee('Registrar cobro');
-    $this->post(route('admin.pedidos.pago', $order), ['metodo_pago' => 'efectivo', 'monto_recibido' => 5])->assertSessionHasNoErrors();
+    $this->post(route('admin.pedidos.pago', $order), ['metodo_pago' => 'efectivo', 'monto_recibido' => 5, 'comprobante_tipo' => 'boleta'])->assertSessionHasNoErrors();
     expect($order->fresh()->estado)->toBe('pagado')->and($order->fresh()->vuelto)->toBe('2.00')->and($table->fresh()->estado)->toBe('disponible');
 });
 
@@ -162,7 +162,7 @@ it('delivers the waiter form to the administrator and keeps management restricte
     $this->get(route('admin.pedidos.show', $order))->assertOk()->assertSee('Sin hielo');
     $this->patch(route('admin.pedidos.estado', $order), ['estado' => 'listo'])->assertSessionHasNoErrors();
     $this->getJson(route('admin.pedidos.actualizaciones'))->assertJsonPath('pedidos.0.estado', 'listo');
-    $this->post(route('admin.pedidos.pago', $order), ['metodo_pago' => 'yape'])->assertSessionHasNoErrors();
+    $this->post(route('admin.pedidos.pago', $order), ['metodo_pago' => 'yape', 'comprobante_tipo' => 'boleta'])->assertSessionHasNoErrors();
     $this->getJson(route('admin.pedidos.actualizaciones'))
         ->assertJsonCount(0, 'pedidos')->assertJsonPath('mesas.0.estado', 'disponible');
 });

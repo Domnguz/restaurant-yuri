@@ -39,7 +39,7 @@ it('publishes committed creation additions service states and cancellation', fun
 it('publishes payment and updates the administrator summary', function () {
     $this->actingAs($this->waiter)->postJson(route('admin.mesero.pedidos.store', $this->table), $this->items);
     $order = Pedido::first();
-    $this->actingAs($this->admin)->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'efectivo', 'monto_recibido' => 5])
+    $this->actingAs($this->admin)->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'efectivo', 'monto_recibido' => 5, 'comprobante_tipo' => 'boleta'])
         ->assertOk()->assertJsonPath('pedido.estado', 'pagado')->assertJsonPath('pedido.pago.vuelto', '2.00');
     Http::assertSent(fn ($request) => $request['action'] === 'paid');
     $this->getJson(route('realtime.snapshot', ['pedido' => $order->id]))->assertOk()->assertJsonCount(0, 'pedidos')
@@ -47,7 +47,7 @@ it('publishes payment and updates the administrator summary', function () {
         ->assertJsonPath('resumen.ultimosPedidos.0.estado', 'pagado')->assertJsonPath('mesas.0.estado', 'disponible');
     $this->patchJson(route('admin.pedidos.cancelar', $order))->assertUnprocessable();
     $this->patchJson(route('admin.pedidos.estado', $order), ['estado' => 'listo'])->assertUnprocessable();
-    $this->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'yape'])->assertUnprocessable();
+    $this->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'yape', 'comprobante_tipo' => 'boleta'])->assertUnprocessable();
     Http::assertSentCount(2);
 });
 
@@ -93,9 +93,9 @@ it('rejects serving or charging a total reviewed before the waiter added product
     $this->postJson(route('admin.mesero.pedidos.store', $this->table), [...$this->items, 'pedido_id' => $order->id])->assertOk();
     $this->actingAs($this->admin)->patchJson(route('admin.pedidos.estado', $order), ['estado' => 'listo', 'total_revisado' => 3])
         ->assertUnprocessable();
-    $this->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'yape', 'total_revisado' => 3])->assertUnprocessable();
-    $this->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'efectivo', 'monto_recibido' => 4])->assertUnprocessable();
+    $this->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'yape', 'total_revisado' => 3, 'comprobante_tipo' => 'boleta'])->assertUnprocessable();
+    $this->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'efectivo', 'monto_recibido' => 4, 'comprobante_tipo' => 'boleta'])->assertUnprocessable();
     expect($order->fresh()->estado)->toBe('pendiente')->and($order->fresh()->total)->toBe('6.00');
     Http::assertSentCount(2);
-    $this->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'yape', 'total_revisado' => 6])->assertOk();
+    $this->postJson(route('admin.pedidos.pago', $order), ['metodo_pago' => 'yape', 'total_revisado' => 6, 'comprobante_tipo' => 'boleta'])->assertOk();
 });
