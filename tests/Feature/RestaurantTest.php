@@ -77,7 +77,8 @@ it('registers a waiter order using the current menu price and preserves notes', 
     ])->assertOk();
     $order = Pedido::first();
     expect($order->total)->toBe('3.00')->and($table->fresh()->estado)->toBe('ocupada')
-        ->and($order->detalles->first()->observaciones)->toBe('Sin hielo · Servir primero');
+        ->and($order->detalles->first()->observaciones)->toBe('Sin hielo · Servir primero')
+        ->and($product->fresh()->pedidoDetalles()->first()->precio)->toBe('3.00');
     $this->get(route('admin.mesero.pedidos.agregar', $table))->assertOk()->assertSee('Sin hielo', false);
 
     $admin = User::factory()->create(['role' => 'admin']);
